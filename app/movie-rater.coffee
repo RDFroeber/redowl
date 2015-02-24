@@ -4,7 +4,7 @@ module.exports = (ratings) ->
   if ratings !instanceof Array or arguments.length isnt 1
     throw new Error 'Invalid arguments'
   else if ratings.length < 3 or _.uniq(ratings).length < 3
-      throw new Error 'Not enough ratings'
+    throw new Error 'Not enough ratings'
   else
     min = Math.min.apply @, ratings
     max = Math.max.apply @, ratings
