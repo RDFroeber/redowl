@@ -14,7 +14,7 @@ class MovieRatingsResource
   putMovieRatings: (movie, ratings) -> @_movieRatings[movie] = _.shuffle ratings
 
   postMovieRating: (movie, rating)->
-    (@_movieRatings[movie] ?= []).push rating
+    (@_movieRatings[movie] ?= []).push parseInt(rating)
     @_movieRatings[movie] = _.shuffle @_movieRatings[movie]
 
   deleteMovieRatings: (movie) ->
