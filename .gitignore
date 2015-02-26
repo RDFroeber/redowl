@@ -2,4 +2,6 @@
 node_modules/
 *.iml
 /assets/javascripts/*.js
+/assets/stylesheets/*.css
+/assets/stylesheets/*.map
 .sass-cache/
