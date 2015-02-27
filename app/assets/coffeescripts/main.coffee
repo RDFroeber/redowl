@@ -17,25 +17,82 @@ dependencies = [
   'movie-ratings-service-client'
 ]
 
-requirejs dependencies, ($, _, Handlebars, ratingsService) ->
+requirejs dependencies, ($, _, Handlebars, ratingsService) ->   
 
   movieRatingsTemplate = """
-                         <div class="movie-ratings">
-                           {{movieRatings}}
-                         </div>
+                        <div class='container'>
+                          <div class='movie-ratings'>
+                            <h1>Movie Ratings</h1>
+            
+                            {{#each movieRatings}}
+                              <h2>{{@key}}</h2>
+                              <h3 class='all-ratings'>All Ratings:</h3>
+                              <p class='all-ratings'>{{this}}</p>
+                           
+                              {{> addRating this}}
+                              {{> deleteMovie this}}
+                            {{/each}}
+                          </div>
+
+                          <div class='current-rating'>
+                            <h2>Current Ratings:</h2>
+                          </div>
+                        </div>
                          """
-  ratedMovieTemplate = """
-                       <div class="rated-movie">
-                         {{movieName}}: {{rating}}
-                       </div>
+
+  ratedMoviesTemplate = """
+                          <h3>{{movie}}:
+                          {{#if isBad}}
+                            <span class="bad"> {{rating}}</span>
+                          {{else}}
+                            <span>{{rating}}</span>
+                          {{/if}}
+                          </h3>
+                       """
+
+  Handlebars.registerPartial 'addRating', """
+                        <form class="post-rating" action="/api/movieratings/{{@key}}">
+                          <label for="rating">Add Rating</label>
+                          <input type="number" name="rating" placeholder="Your rating"/>
+                          <input type="hidden" name="movie" value="{{@key}}"/>
+                          <input type="submit" value="Add"/>
+                        </form>
+                       """
+
+  Handlebars.registerPartial 'deleteMovie', """
+                        <form class="delete-movie" action="/api/movieratings/{{@key}}">
+                          <label for="delete">Delete {{@key}}?</label>
+                          <input type="hidden" name="movie" value="{{@key}}"/>
+                          <input type="submit" value="Yes, delete it!"/>
+                        </form>
                        """
 
   movieRatingsSection = Handlebars.compile movieRatingsTemplate
-  ratedMovieSection = Handlebars.compile ratedMovieTemplate
+  ratedMoviesSection = Handlebars.compile ratedMoviesTemplate
 
   ratingsService.getAllMovieRatings (ratings) ->
-    $('body').append movieRatingsSection { movieRatings: JSON.stringify ratings }
+    $('body').append movieRatingsSection { movieRatings: ratings }
+    $('form.post-rating').on 'submit', (e) ->
+      e.preventDefault()
+      $.ajax({
+          url: $(this).attr('action'),
+          type: 'POST',
+          data: $(this).serialize()
+        }).done (data) ->
+          location.href = '/'
+
+    $('form.delete-movie').on 'submit', (e) ->
+      e.preventDefault()
+      $.ajax({
+          url: $(this).attr('action'), 
+          type: 'DELETE',
+          data: $(this).serialize()
+        }).done (data) ->
+          location.href = '/'
+
     for movie of ratings
       do (movie) ->
         ratingsService.getMovieRating movie, (rating) ->
-          $('body').append ratedMovieSection { movieName: movie, rating: rating }
+          if rating < 3 then isBad = true else isBad = false
+          $('.current-rating').append ratedMoviesSection {movie: movie, rating: rating, isBad: isBad}
+      
