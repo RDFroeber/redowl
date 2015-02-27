@@ -23,7 +23,6 @@ requirejs dependencies, ($, _, Handlebars, ratingsService) ->
                         <div class='container'>
                           <div class='movie-ratings'>
                             <h1>Movie Ratings</h1>
-            
                             {{#each movieRatings}}
                               <h2>{{@key}}</h2>
                               <h3 class='all-ratings'>All Ratings:</h3>
@@ -34,8 +33,13 @@ requirejs dependencies, ($, _, Handlebars, ratingsService) ->
                             {{/each}}
                           </div>
 
-                          <div class='current-rating'>
-                            <h2>Current Ratings:</h2>
+                          <div class='sidebar'>
+                            <h2>Current Ratings</h2>
+                            <div class='current-rating'>
+                            </div>
+
+                            <h3>Add a Movie</h3>
+                            {{> addMovie}}
                           </div>
                         </div>
                          """
@@ -54,7 +58,19 @@ requirejs dependencies, ($, _, Handlebars, ratingsService) ->
                         <form class="post-rating" action="/api/movieratings/{{@key}}">
                           <label for="rating">Add Rating</label>
                           <input type="number" name="rating" placeholder="Your rating"/>
-                          <input type="hidden" name="movie" value="{{@key}}"/>
+
+                          <input type="submit" value="Add"/>
+                        </form>
+                       """
+
+  Handlebars.registerPartial 'addMovie', """
+                        <form class="add-movie">
+                          <label for="movie">Movie</label>
+                          <input type="text" name="movie" id="name" placeholder="Movie title"/>
+
+                          <label for="rating">Rating</label>
+                          <input type="number" name="rating" placeholder="Your rating"/>
+
                           <input type="submit" value="Add"/>
                         </form>
                        """
@@ -62,7 +78,7 @@ requirejs dependencies, ($, _, Handlebars, ratingsService) ->
   Handlebars.registerPartial 'deleteMovie', """
                         <form class="delete-movie" action="/api/movieratings/{{@key}}">
                           <label for="delete">Delete {{@key}}?</label>
-                          <input type="hidden" name="movie" value="{{@key}}"/>
+
                           <input type="submit" value="Yes, delete it!"/>
                         </form>
                        """
@@ -72,6 +88,15 @@ requirejs dependencies, ($, _, Handlebars, ratingsService) ->
 
   ratingsService.getAllMovieRatings (ratings) ->
     $('body').append movieRatingsSection { movieRatings: ratings }
+    $('form.add-movie').on 'submit', (e) ->
+      e.preventDefault()
+      $.ajax({
+          url: '/api/movieratings/' + $('form.add-movie #name').val(),
+          type: 'POST',
+          data: $(this).serialize()
+        }).done (data) ->
+          location.href = '/'
+
     $('form.post-rating').on 'submit', (e) ->
       e.preventDefault()
       $.ajax({
@@ -95,4 +120,3 @@ requirejs dependencies, ($, _, Handlebars, ratingsService) ->
         ratingsService.getMovieRating movie, (rating) ->
           if rating < 3 then isBad = true else isBad = false
           $('.current-rating').append ratedMoviesSection {movie: movie, rating: rating, isBad: isBad}
-      
